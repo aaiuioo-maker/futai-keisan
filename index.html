@@ -331,6 +331,18 @@
     font-size: 16px; color: #334155;
     margin-left: 4px; font-weight: 600;
   }
+  /* 合計の内訳 (パレット ○kg×○台 ＋ Pケース ○kg×○個) */
+  .result-breakdown {
+    font-size: 11px; color: #64748b;
+    line-height: 1.4;
+    margin-top: 3px;
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
+  }
+  .result-breakdown:empty { display: none; }
+  .result-breakdown .bd-item { white-space: nowrap; }
+  .result-breakdown .bd-pallet { color: #ea580c; font-weight: 600; }
+  .result-breakdown .bd-pcase { color: #0284c7; font-weight: 600; }
 
   /* アクション */
   .actions { display: flex; gap: 8px; margin-top: 8px; }
@@ -591,6 +603,7 @@
     <div>
       <span class="result-value" id="totalValue">0.0</span><span class="result-unit">kg</span>
     </div>
+    <div class="result-breakdown" id="totalBreakdown"></div>
   </div>
 
   <div class="actions">
@@ -652,8 +665,9 @@
   })();
 
   const state = {
-    pallet: { weight: 0, count: 0, added: 0 },
-    pcase: { weight: 0, count: 0, added: 0 },
+    // entries: 合計に追加した内訳 [{ weight, count }]
+    pallet: { weight: 0, count: 0, added: 0, entries: [] },
+    pcase: { weight: 0, count: 0, added: 0, entries: [] },
     total: 0
   };
 
@@ -810,6 +824,7 @@
     const subtotal = round2(item.weight * item.count);
     state.total = round2(state.total + subtotal);
     item.added = round2(item.added + subtotal);
+    item.entries.push({ weight: item.weight, count: item.count });
 
     // 二重追加を防ぐため、追加したら数だけ空にする (重さは残す)
     item.count = 0;
@@ -834,6 +849,7 @@
     const removed = item.added;
     state.total = round2(state.total - item.added);
     item.added = 0;
+    item.entries = [];
     if (state.total < 0.001) state.total = 0;
 
     playReset();
@@ -851,6 +867,20 @@
     document.getElementById('pcaseSubtotal').textContent = fmt(pcaseSubtotal) + ' kg';
 
     document.getElementById('totalValue').textContent = fmt(state.total);
+
+    // 内訳: 例) パレット 25.0kg×4台 ＋ Pケース 1.8kg×10個
+    const parts = [];
+    [['pallet', 'パレット', '台'], ['pcase', 'Pケース', '個']].forEach(([type, label, unit]) => {
+      // 同じ重さで何回か追加したときは数をまとめる (1.8kg×10個 + 1.8kg×5個 → 1.8kg×15個)
+      const byWeight = new Map();
+      state[type].entries.forEach(en => {
+        byWeight.set(en.weight, (byWeight.get(en.weight) || 0) + en.count);
+      });
+      byWeight.forEach((count, weight) => {
+        parts.push(`<span class="bd-item"><span class="bd-${type}">${label}</span> ${fmt(weight)}kg×${count}${unit}</span>`);
+      });
+    });
+    document.getElementById('totalBreakdown').innerHTML = parts.join(' ＋ ');
 
     document.getElementById('palletAddBtn').disabled = !(state.pallet.weight > 0 && state.pallet.count > 0);
     document.getElementById('pcaseAddBtn').disabled = !(state.pcase.weight > 0 && state.pcase.count > 0);
@@ -948,8 +978,10 @@
         state.total = 0;
         state.pallet.count = 0;
         state.pallet.added = 0;
+        state.pallet.entries = [];
         state.pcase.count = 0;
         state.pcase.added = 0;
+        state.pcase.entries = [];
 
         playReset();
         syncInputsFromState();
