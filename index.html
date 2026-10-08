@@ -125,7 +125,7 @@
   }
   #main.active { display: block; }
 
-  .header { text-align: center; margin-bottom: 10px; padding: 0; position: relative; min-height: 40px; }
+  .header { text-align: center; margin-bottom: 6px; padding: 0; position: relative; min-height: 40px; }
   .header .cc-wrap { position: absolute; top: 0; left: 0; }
 
   /* === Claude Code のキャラクター（ヘッダー左上） === */
@@ -147,7 +147,7 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(148, 163, 184, 0.15);
-    border-radius: 14px; padding: 12px; margin-bottom: 8px;
+    border-radius: 14px; padding: 9px 12px; margin-bottom: 6px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   }
   .card-pallet { border-color: rgba(251, 146, 60, 0.3); }
@@ -155,7 +155,7 @@
 
   .card-header {
     display: flex; align-items: center;
-    gap: 8px; margin-bottom: 8px;
+    gap: 8px; margin-bottom: 5px;
   }
   .card-icon {
     width: 30px; height: 30px; border-radius: 8px;
@@ -169,7 +169,7 @@
 
   .input-row {
     display: flex; align-items: center;
-    gap: 8px; margin-bottom: 6px;
+    gap: 8px; margin-bottom: 4px;
   }
   .input-label { font-size: 12px; color: #cbd5e1; min-width: 72px; }
   .input-unit { font-size: 12px; color: #94a3b8; margin-left: 4px; }
@@ -180,7 +180,7 @@
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: 9px;
-    padding: 9px 12px;
+    padding: 6px 12px;
     display: flex; align-items: center; justify-content: space-between;
     gap: 4px;
     transition: border-color 0.15s;
@@ -212,7 +212,7 @@
   /* この回の小計 */
   .subtotal {
     margin-top: 4px;
-    padding: 7px 10px;
+    padding: 5px 10px;
     background: rgba(15, 23, 42, 0.4);
     border-radius: 7px;
     font-size: 12px;
@@ -231,11 +231,11 @@
   .btn-row {
     display: flex;
     gap: 6px;
-    margin-top: 8px;
+    margin-top: 6px;
   }
   .add-btn {
     flex: 2;
-    padding: 11px;
+    padding: 9px;
     border-radius: 10px;
     border: none;
     font-size: 14px; font-weight: 600;
@@ -262,7 +262,7 @@
 
   .clear-btn {
     flex: 1;
-    padding: 11px;
+    padding: 9px;
     border-radius: 10px;
     background: rgba(15, 23, 42, 0.4);
     font-size: 12px; font-weight: 600;
@@ -292,7 +292,7 @@
 
   /* 追加済み表示 */
   .added-info {
-    margin-top: 6px;
+    margin-top: 3px;
     font-size: 11px;
     text-align: right;
     opacity: 0;
@@ -333,9 +333,9 @@
   }
   /* 合計の内訳 (パレット ○kg×○台 ＋ Pケース ○kg×○個) */
   .result-breakdown {
-    font-size: 11px; color: #64748b;
+    font-size: 14px; color: #475569;
     line-height: 1.4;
-    margin-top: 3px;
+    margin-top: 4px; padding-bottom: 2px;
     font-feature-settings: 'tnum';
     font-variant-numeric: tabular-nums;
   }
