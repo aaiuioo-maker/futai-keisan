@@ -116,6 +116,45 @@
     50% { opacity: 1; }
   }
 
+  /* ===== クロロ登場 (1回目のタップで表示。効果音を鳴らすにはタップが必要なため) ===== */
+  .opening-icon, .opening-title, .opening-subtitle { transition: all 0.4s ease; }
+  #opening.appear .opening-icon { width: 84px; height: 84px; border-radius: 16px; margin-bottom: 12px; animation: none; }
+  #opening.appear .opening-title { font-size: 22px; margin-bottom: 4px; }
+  #opening.appear .opening-subtitle { margin-bottom: 0; }
+  .kuroro-scene {
+    display: none;
+    width: 310px; margin: 14px auto 0;
+    border: 3px solid #d2b17b; border-radius: 4px;
+    overflow: hidden; background: #000;
+    position: relative; z-index: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
+  .kuroro-scene img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+  #opening.appear .kuroro-scene { display: block; animation: encounter 0.9s steps(1) both; }
+  /* 敵があらわれた時のようにチカチカ点滅して登場 */
+  @keyframes encounter {
+    0% { opacity: 0; } 15% { opacity: 1; } 30% { opacity: 0; } 45% { opacity: 1; }
+    60% { opacity: 0; } 75%, 100% { opacity: 1; }
+  }
+  .dq-msgbox {
+    display: none;
+    width: 310px; min-height: 92px; margin: 8px auto 16px;
+    padding: 10px 12px;
+    background: #000; color: #f8f8f8;
+    border: 3px double #f8f8f8; border-radius: 4px;
+    font-family: -apple-system, 'Hiragino Sans', sans-serif;
+    font-size: 14px; font-weight: 700; line-height: 1.7;
+    white-space: pre-line; text-align: left;
+    position: relative; z-index: 1;
+  }
+  #opening.appear .dq-msgbox { display: block; animation: fadeIn 0.3s ease 0.9s both; }
+  .dq-msgbox .s-cross { color: #d2b17b; }
+  .dq-cursor {
+    display: inline-block; width: 8px; height: 13px; background: #f8f8f8;
+    animation: blink 0.6s step-end infinite; vertical-align: middle; margin-left: 2px;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
   /* ===== メイン ===== */
   #main {
     display: none;
@@ -471,7 +510,12 @@
   <div class="opening-title">風袋計算</div>
   <div class="opening-divider"></div>
   <div class="opening-subtitle">Tare Weight</div>
-  <div class="opening-tap">タップして開始</div>
+
+  <!-- クロロのドット絵 ＋ セリフ -->
+  <div class="kuroro-scene"><img src="kuroro.jpg" alt="クロロ"></div>
+  <div class="dq-msgbox"><span id="kuroroMsg"></span><span class="dq-cursor"></span></div>
+
+  <div class="opening-tap" id="tapHint">タップして開始</div>
 </div>
 
 <!-- メイン -->
@@ -746,9 +790,76 @@
   }
   function playOpen() { playTone(1200, 0.05, 'square', 0.04); }
 
-  // オープニング
+  // ===== ドラクエ風の効果音 (クロロ登場用) =====
+  function sq(ctx, type, freq, start, dur, vol) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.setValueAtTime(freq, start);
+    g.gain.setValueAtTime(vol, start);
+    g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+    o.start(start); o.stop(start + dur + 0.02);
+  }
+  // 敵があらわれた！：上下にかけ回る速いフレーズ → 低い音でドン
+  function playEncounter() {
+    const ctx = getAudioCtx(); if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime + 0.02;
+    const run = [1319,1175,1047,988,880,784,698,659, 698,784,880,988,1047,1175,1319,1568];
+    run.forEach((f, i) => sq(ctx, 'square', f, now + i * 0.035, 0.05, 0.07));
+    const t = now + run.length * 0.035 + 0.02;
+    sq(ctx, 'square', 196, t, 0.35, 0.09); sq(ctx, 'square', 233, t, 0.35, 0.06); sq(ctx, 'sawtooth', 98, t, 0.4, 0.06);
+  }
+  // セリフを打つ音：短い「ピッ」
+  function playBlip() {
+    const ctx = getAudioCtx(); if (!ctx) return;
+    sq(ctx, 'square', 1100, ctx.currentTime, 0.03, 0.045);
+  }
+
+  // ===== クロロのセリフを1文字ずつ表示 =====
+  const kuroroFull = [
+    'クロロ が あらわれた！',
+    '風袋か… その重さ、オレが 盗んでやろう。',
+    'パレットも Pケースも… 逃しはしない✚'
+  ].join('\n');
+  let kuroroPos = 0, kuroroDone = false, openingStage = 0, openingDone = false;
+
+  function paintKuroro() {
+    let h = '';
+    for (let k = 0; k < kuroroPos; k++) {
+      const c = kuroroFull.charAt(k);
+      h += (c === '✚') ? '<span class="s-cross">✚</span>' : c;
+    }
+    document.getElementById('kuroroMsg').innerHTML = h;
+  }
+  function finishKuroro() {
+    kuroroPos = kuroroFull.length; paintKuroro(); kuroroDone = true;
+    document.getElementById('tapHint').textContent = 'タップしてすすむ';
+    document.getElementById('tapHint').style.visibility = 'visible';
+  }
+  function typeKuroro() {
+    if (openingDone || kuroroDone) return;
+    kuroroPos++; paintKuroro();
+    const c = kuroroFull.charAt(kuroroPos - 1);
+    if (c !== ' ' && c !== '\n' && c !== '…') playBlip();   // 1文字ごとにピピピッ
+    if (kuroroPos >= kuroroFull.length) { finishKuroro(); return; }
+    setTimeout(typeKuroro, c === '\n' ? 380 : c === '…' ? 220 : 70);
+  }
+
+  // オープニング: 1回目のタップでクロロ登場 → セリフ → もう1回タップで本編へ
   document.getElementById('opening').addEventListener('click', () => {
+    if (openingDone) return;
     getAudioCtx();
+    if (openingStage === 0) {
+      openingStage = 1;
+      document.getElementById('opening').classList.add('appear');
+      document.getElementById('tapHint').style.visibility = 'hidden';
+      playEncounter();
+      setTimeout(typeKuroro, 1100);
+      return;
+    }
+    // セリフの途中でタップしたら、残りを一気に表示
+    if (!kuroroDone) { finishKuroro(); playBlip(); return; }
+    openingDone = true;
     playOpening();
     document.getElementById('opening').style.opacity = '0';
     document.getElementById('opening').style.transition = 'opacity 0.4s';
