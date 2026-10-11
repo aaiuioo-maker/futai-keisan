@@ -532,7 +532,7 @@
   <div class="opening-subtitle">Tare Weight</div>
 
   <!-- クロロのドット絵 ＋ セリフ -->
-  <div class="kuroro-scene"><img src="kuroro.jpg" alt="クロロ"></div>
+  <div class="kuroro-scene"><img id="kuroroImg" src="kuroro.jpg" alt="クロロ"></div>
   <div class="dq-msgbox"><span id="kuroroMsg"></span><span class="dq-cursor"></span></div>
 
   <div class="opening-tap" id="tapHint">タップして開始</div>
@@ -852,6 +852,12 @@
     const ctx = getAudioCtx(); if (!ctx) return;
     sq(ctx, 'square', 1100, ctx.currentTime, 0.03, 0.045);
   }
+
+  // ===== クロロの絵は4枚からランダムに1枚 =====
+  (function () {
+    const pics = ['kuroro.jpg', 'kuroro2.jpg', 'kuroro3.jpg', 'kuroro4.jpg'];
+    document.getElementById('kuroroImg').src = pics[Math.floor(Math.random() * pics.length)];
+  })();
 
   // ===== クロロのセリフを1文字ずつ表示 =====
   const kuroroFull = [
