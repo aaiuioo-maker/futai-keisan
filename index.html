@@ -853,9 +853,9 @@
     sq(ctx, 'square', 1100, ctx.currentTime, 0.03, 0.045);
   }
 
-  // ===== クロロの絵は4枚からランダムに1枚（どれも 700×452 にそろえてある） =====
+  // ===== クロロの絵は5枚からランダムに1枚（どれも 700×452 にそろえてある） =====
   (function () {
-    const pics = ['kuroro.jpg', 'kuroro5.jpg', 'kuroro7.jpg', 'kuroro8.jpg'];
+    const pics = ['kuroro.jpg', 'kuroro5.jpg', 'kuroro7.jpg', 'kuroro8.jpg', 'kuroro9.jpg'];
     document.getElementById('kuroroImg').src = pics[Math.floor(Math.random() * pics.length)];
   })();
 
