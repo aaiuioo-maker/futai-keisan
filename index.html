@@ -129,7 +129,7 @@
     position: relative; z-index: 1;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   }
-  .kuroro-scene img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+  .kuroro-scene img { display: block; width: 100%; height: auto; aspect-ratio: 700 / 452; object-fit: cover; }
   #opening.appear .kuroro-scene { display: block; animation: encounter 0.9s steps(1) both; }
   /* 敵があらわれた時のようにチカチカ点滅して登場 */
   @keyframes encounter {
@@ -852,6 +852,12 @@
     const ctx = getAudioCtx(); if (!ctx) return;
     sq(ctx, 'square', 1100, ctx.currentTime, 0.03, 0.045);
   }
+
+  // ===== クロロの絵は3枚からランダムに1枚（どれも 700×452 にそろえてある） =====
+  (function () {
+    const pics = ['kuroro.jpg', 'kuroro5.jpg', 'kuroro6.jpg'];
+    document.getElementById('kuroroImg').src = pics[Math.floor(Math.random() * pics.length)];
+  })();
 
   // ===== クロロのセリフを1文字ずつ表示 =====
   const kuroroFull = [
