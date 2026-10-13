@@ -853,12 +853,6 @@
     sq(ctx, 'square', 1100, ctx.currentTime, 0.03, 0.045);
   }
 
-  // ===== クロロの絵は2枚からランダムに1枚 =====
-  (function () {
-    const pics = ['kuroro.jpg', 'kuroro4.jpg'];
-    document.getElementById('kuroroImg').src = pics[Math.floor(Math.random() * pics.length)];
-  })();
-
   // ===== クロロのセリフを1文字ずつ表示 =====
   const kuroroFull = [
     'クロロ が あらわれた！',
