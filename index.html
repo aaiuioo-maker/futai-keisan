@@ -121,6 +121,9 @@
   #opening.appear .opening-icon { width: 84px; height: 84px; border-radius: 16px; margin-bottom: 12px; animation: none; }
   #opening.appear .opening-title { font-size: 22px; margin-bottom: 4px; }
   #opening.appear .opening-subtitle { margin-bottom: 0; }
+  /* 縦長の絵（TALL）のときは、そのぶん上のアイコンを小さくして1画面に収める */
+  #opening.appear.tall-pic .opening-icon { width: 60px; height: 60px; border-radius: 12px; margin-bottom: 8px; }
+  #opening.appear.tall-pic .opening-title { font-size: 20px; }
   .kuroro-scene {
     display: none;
     width: 310px; margin: 14px auto 0;
@@ -853,10 +856,14 @@
     sq(ctx, 'square', 1100, ctx.currentTime, 0.03, 0.045);
   }
 
-  // ===== クロロの絵は8枚からランダムに1枚（どれも 700×452 にそろえてある） =====
+  // ===== クロロの絵は8枚からランダムに1枚（ふだんは 700×452。横長の枠に入りきらない絵は TALL に縦横の比を書き、その絵のときだけ枠を縦長にして横幅いっぱいに出す） =====
   (function () {
     const pics = ['kuroro5.jpg', 'kuroro7.jpg', 'kuroro8.jpg', 'kuroro9.jpg', 'kuroro10.jpg', 'kuroro12.jpg', 'kuroro13.jpg', 'kuroro14.jpg'];
-    document.getElementById('kuroroImg').src = pics[Math.floor(Math.random() * pics.length)];
+    const TALL = { 'kuroro14.jpg': '700 / 578' };
+    const pick = pics[Math.floor(Math.random() * pics.length)];
+    const img = document.getElementById('kuroroImg');
+    img.src = pick;
+    if (TALL[pick]) { img.style.aspectRatio = TALL[pick]; document.getElementById('opening').classList.add('tall-pic'); }
   })();
 
   // ===== クロロのセリフを1文字ずつ表示 =====
