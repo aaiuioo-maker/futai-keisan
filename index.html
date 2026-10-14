@@ -523,6 +523,45 @@
   .confirm-btn-ok:active { transform: scale(0.97); }
 /* キャラクターの下の「Claude Code」「GitHub」の文字を太く */
 .cc-label, .gh-label, .op-c > span { font-weight: 700 !important; }
+
+  /* ===== キャラクターの自己紹介（左上の Claude Code と GitHub のマークをタップすると出る） ===== */
+  #introOverlay {
+    display: none; position: fixed; inset: 0; z-index: 4500;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  #introOverlay.show { display: flex; animation: fadeIn 0.2s; }
+  .intro-box {
+    width: 100%; max-width: 330px;
+    background: #0b1120; border: 3px double #f8f8f8; border-radius: 6px;
+    padding: 18px 16px 14px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .intro-pic { height: 104px; display: none; align-items: flex-end; justify-content: center; margin-bottom: 8px; }
+  .intro-box[data-who="cc"] .intro-pic-cc, .intro-box[data-who="gh"] .intro-pic-gh { display: flex; }
+  .intro-pic-cc svg { width: 153px; height: 103.5px; shape-rendering: crispEdges; overflow: visible; }
+  .intro-pic .gh-mascot { height: auto; }
+  .intro-pic .gh-mascot svg { width: 88px; height: 88px; }
+  .intro-name { font-size: 17px; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; }
+  .intro-box[data-who="cc"] .intro-name { color: #d97757; }
+  .intro-box[data-who="gh"] .intro-name { color: #e6edf3; }
+  .intro-msg {
+    text-align: left; min-height: 8.8em;
+    background: #000; border: 2px solid #475569; border-radius: 4px;
+    padding: 10px 12px;
+    color: #f8f8f8; font-size: 14px; font-weight: 700; line-height: 1.75;
+    white-space: pre-line;
+  }
+  .intro-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .intro-btn {
+    flex: 1; padding: 11px 8px; border-radius: 10px;
+    font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .intro-link { background: rgba(51, 65, 85, 0.6); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+  .intro-close { background: #f8f8f8; color: #0b1120; border: none; }
+  .intro-btn:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
@@ -700,6 +739,46 @@
 </div>
 
 <div class="message" id="message"></div>
+
+<!-- キャラクターの自己紹介 -->
+<div id="introOverlay" onclick="if (event.target === this) closeIntro()">
+  <div class="intro-box" id="introBox" data-who="cc">
+    <div class="intro-pic intro-pic-cc"><svg class="cc-anim" viewBox="0 -7 34 23" aria-hidden="true"></svg></div>
+    <div class="intro-pic intro-pic-gh"><span class="gh-mascot">
+        <svg class="gh-big" viewBox="0 0 16 16" aria-hidden="true">
+          <defs><clipPath id="ghClipBig"><circle cx="8" cy="8" r="8"/></clipPath></defs>
+          <g class="gh-all">
+            <circle class="gh-disc" cx="8" cy="8" r="8"/>
+            <g clip-path="url(#ghClipBig)">
+              <!-- 体（首から下。丸の下へつながる） -->
+              <path class="gh-cat" d="M6.75 10.3 C6.45 10.7 6.3 11.2 6.3 11.8 L6.3 15.1 Q6.3 15.6 6.8 15.6 L9.2 15.6 Q9.7 15.6 9.7 15.1 L9.7 11.8 C9.7 11.2 9.55 10.7 9.25 10.3 Z"/>
+              <!-- 頭と耳（首を中心にかしげる） -->
+              <g class="gh-head">
+                <path class="gh-cat" d="M4.15 4.75 C3.85 3.85 3.95 2.85 4.3 2.1 C4.3 2.1 5.05 1.95 6.35 2.9 C6.9 2.75 7.45 2.68 8 2.68 C8.55 2.68 9.1 2.75 9.65 2.9 C10.95 1.95 11.7 2.1 11.7 2.1 C12.05 2.85 12.15 3.85 11.85 4.75 C12.4 5.3 12.75 6.0 12.75 6.95 C12.75 9.75 10.95 10.45 8 10.55 C5.05 10.45 3.25 9.75 3.25 6.95 C3.25 6.0 3.6 5.3 4.15 4.75 Z"/>
+                <!-- まばたき用の目（ふだんは閉じていて、ときどきパチッと開く） -->
+                <rect class="gh-eyes" x="5.5" y="6.1" width="1" height="1.5" rx="0.5"/>
+                <rect class="gh-eyes" x="9.5" y="6.1" width="1" height="1.5" rx="0.5"/>
+              </g>
+              <!-- タコの足（付け根を中心にゆらゆら） -->
+              <g class="gh-tail">
+                <path class="gh-tail-line" d="M6.5 12.35 C5.3 12.55 4.65 12.0 4.25 11.25 C3.95 10.7 3.6 10.35 3.0 10.25"/>
+                <circle class="gh-dot" cx="5.5" cy="12.2" r="0.17"/>
+                <circle class="gh-dot" cx="4.75" cy="11.75" r="0.17"/>
+                <circle class="gh-dot" cx="4.25" cy="11.05" r="0.17"/>
+                <circle class="gh-dot" cx="3.7" cy="10.5" r="0.17"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+    </span></div>
+    <div class="intro-name" id="introName"></div>
+    <div class="intro-msg" id="introMsg" onclick="finishIntro()"></div>
+    <div class="intro-actions">
+      <a class="intro-btn intro-link" id="introLink" href="#" target="_blank" rel="noopener">公式ページを見る</a>
+      <button class="intro-btn intro-close" onclick="closeIntro()">とじる</button>
+    </div>
+  </div>
+</div>
 
 <!-- 確認ダイアログ -->
 <div id="confirmOverlay">
@@ -1864,6 +1943,64 @@ window.CC_EXTRA = [...MOVES, ...SLEEPS, ...FOODS, ...FOODS2, ...FOODS3, ...WAYS,
     gh.addEventListener('animationend', function(e) {
       if (e.animationName === 'gh-spin') gh.classList.remove('spin');
     });
+  })();
+
+  // ===== キャラクターの自己紹介 =====
+  //   左上の Claude Code（オレンジ）と GitHub のマークをタップすると、それぞれが自己紹介する。
+  //   公式ページは自己紹介の画面の「公式ページを見る」から開く
+  const INTRO = {
+    cc: {
+      name: 'Claude Code（クロード・コード）',
+      link: 'https://claude.com/claude-code',
+      text: 'やあ！ ぼくは Claude Code。\nAnthropic が作った AI だよ。\n話しかけるだけで アプリを\n作ったり 直したり できるんだ。\nこの風袋計算も いっしょに作ったよ！'
+    },
+    gh: {
+      name: 'GitHub（ギットハブ）',
+      link: 'https://github.com/aaiuioo-maker/futai-keisan',
+      text: 'ぼくは GitHub の オクトキャット。\nプログラムを しまっておく\n大きな本だな だよ。\n風袋計算は ここに置いてあって\nスマホからも 開けるんだ。'
+    }
+  };
+  let introFull = '', introPos = 0, introTimer = null;
+
+  function openIntro(who) {
+    const d = INTRO[who];
+    document.getElementById('introBox').dataset.who = who;
+    document.getElementById('introName').textContent = d.name;
+    document.getElementById('introLink').href = d.link;
+    introFull = d.text; introPos = 0;
+    document.getElementById('introMsg').textContent = '';
+    document.getElementById('introOverlay').classList.add('show');
+    playOpen();
+    clearTimeout(introTimer);
+    introTimer = setTimeout(typeIntro, 300);
+  }
+  // 1文字ずつ「ピッ」と鳴らしながら出す
+  function typeIntro() {
+    if (introPos >= introFull.length) return;
+    introPos++;
+    document.getElementById('introMsg').textContent = introFull.slice(0, introPos);
+    const c = introFull.charAt(introPos - 1);
+    if (c !== ' ' && c !== '\n' && c !== '…') playBlip();
+    introTimer = setTimeout(typeIntro, c === '\n' ? 300 : 45);
+  }
+  // 文字の途中でタップしたら、残りを一気に出す
+  function finishIntro() {
+    clearTimeout(introTimer);
+    introPos = introFull.length;
+    document.getElementById('introMsg').textContent = introFull;
+  }
+  function closeIntro() {
+    clearTimeout(introTimer);
+    document.getElementById('introOverlay').classList.remove('show');
+    playCancel();
+  }
+
+  (function setupIntro() {
+    const cc = document.querySelector('.header .cc-mascot');
+    const gh = document.querySelector('.header .gh-mascot');
+    if (cc) cc.addEventListener('click', e => { e.preventDefault(); openIntro('cc'); });
+    // GitHub のマークは、くるっと1回転してから自己紹介
+    if (gh) gh.addEventListener('click', e => { e.preventDefault(); setTimeout(() => openIntro('gh'), 450); });
   })();
 </script>
 </body>
