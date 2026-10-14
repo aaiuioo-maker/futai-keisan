@@ -856,9 +856,9 @@
     sq(ctx, 'square', 1100, ctx.currentTime, 0.03, 0.045);
   }
 
-  // ===== クロロの絵は11枚からランダムに1枚（ふだんは 700×452。形のちがう絵は SHAPE に縦横の比を書き、その絵のときだけ枠の形を変えて横幅いっぱいに出す。ふだんより縦長なら tall-pic で上のアイコンを小さくする） =====
+  // ===== クロロの絵は10枚からランダムに1枚（ふだんは 700×452。形のちがう絵は SHAPE に縦横の比を書き、その絵のときだけ枠の形を変えて横幅いっぱいに出す。ふだんより縦長なら tall-pic で上のアイコンを小さくする） =====
   (function () {
-    const pics = ['kuroro5.jpg', 'kuroro7.jpg', 'kuroro8.jpg', 'kuroro9.jpg', 'kuroro10.jpg', 'kuroro12.jpg', 'kuroro13.jpg', 'kuroro14.jpg', 'kuroro15.jpg', 'kuroro16.jpg', 'kuroro17.jpg'];
+    const pics = ['kuroro5.jpg', 'kuroro8.jpg', 'kuroro9.jpg', 'kuroro10.jpg', 'kuroro12.jpg', 'kuroro13.jpg', 'kuroro14.jpg', 'kuroro15.jpg', 'kuroro16.jpg', 'kuroro17.jpg'];
     const SHAPE = { 'kuroro14.jpg': [700, 578], 'kuroro15.jpg': [700, 619], 'kuroro16.jpg': [700, 503], 'kuroro17.jpg': [700, 388] };
     const pick = pics[Math.floor(Math.random() * pics.length)];
     const img = document.getElementById('kuroroImg');
