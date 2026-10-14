@@ -725,8 +725,9 @@
     const apply = (src) => {
       iconLink.href = src;
       fav.href = src;
-      document.getElementById('openingImg').src = src;
+      // オープニングの絵は、キャラクターを描き足す前の元の画像のまま（下の apply では変えない）
     };
+    document.getElementById('openingImg').src = iconLink.href;
     apply(iconLink.href);
 
     const img = new Image();
