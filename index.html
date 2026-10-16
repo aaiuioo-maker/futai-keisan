@@ -409,7 +409,7 @@
   /* アクション */
   .actions { display: flex; gap: 8px; margin-top: 8px; }
   .action-btn {
-    flex: 1; padding: 11px;
+    flex: 1; padding: 8px 4px; line-height: 1.35;
     background: rgba(30, 41, 59, 0.7);
     border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: 10px;
@@ -418,6 +418,11 @@
     cursor: pointer; letter-spacing: 0.5px;
   }
   .action-btn:active { transform: scale(0.97); }
+  /* パレット・Pケースだけのリセットは、それぞれの色の枠 */
+  .btn-reset-pallet { border-color: rgba(251, 146, 60, 0.45); color: #fdba74; }
+  .btn-reset-pcase { border-color: rgba(56, 189, 248, 0.45); color: #7dd3fc; }
+  .btn-reset-pallet:active { background: rgba(251, 146, 60, 0.2); }
+  .btn-reset-pcase:active { background: rgba(56, 189, 248, 0.2); }
   .btn-save:active {
     background: rgba(34, 197, 94, 0.2);
     color: #4ade80;
@@ -742,8 +747,10 @@
   </div>
 
   <div class="actions">
-    <button class="action-btn btn-save" onclick="saveWeights()">重さを記憶</button>
-    <button class="action-btn btn-reset" onclick="resetAll()">合計リセット</button>
+    <button class="action-btn btn-save" onclick="saveWeights()">重さを<br>記憶</button>
+    <button class="action-btn btn-reset-pallet" onclick="resetType('pallet')">パレット<br>リセット</button>
+    <button class="action-btn btn-reset-pcase" onclick="resetType('pcase')">Pケース<br>リセット</button>
+    <button class="action-btn btn-reset" onclick="resetAll()">合計<br>リセット</button>
   </div>
 </div>
 
@@ -1228,6 +1235,28 @@
   }
 
   // 合計と台数・個数だけをリセット (1台/1個の重さと記憶した重さは残す)
+  // パレットだけ・Pケースだけのリセット（その数と、合計に足したその分を消す。重さはそのまま残る）
+  function resetType(type) {
+    const label = type === 'pallet' ? 'パレット' : 'Pケース';
+    const unit = type === 'pallet' ? '台数' : '個数';
+    showConfirm(
+      label + 'をリセットしますか？<br>(' + unit + 'と、合計に足した' + label + 'の分が消えます。重さはそのまま残ります)',
+      () => {
+        const item = state[type];
+        state.total = round2(state.total - item.added);
+        if (state.total < 0.001) state.total = 0;
+        item.count = 0;
+        item.added = 0;
+        item.entries = [];
+
+        playReset();
+        syncInputsFromState();
+        updateDisplay();
+        showMessage(label + 'をリセットしました');
+      }
+    );
+  }
+
   function resetAll() {
     showConfirm(
       '合計をリセットしますか？<br>(台数・個数もクリアされます。重さはそのまま残ります)',
