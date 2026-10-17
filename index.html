@@ -586,6 +586,36 @@
 #ccMovie .ccm-box { width: 100%; max-width: 420px; display: grid; gap: 10px; }
 #ccMovie video { width: 100%; pointer-events: none; aspect-ratio: 1; background: #000; border: 3px double #f8f8f8; border-radius: 6px; }
 #ccMovie .ccm-close { padding: 11px; border-radius: 10px; border: none; background: #f8f8f8; color: #0b1120; font: 700 14px -apple-system, "Hiragino Sans", sans-serif; cursor: pointer; }
+  /* ===== 重量換算の手順（いちばん下のボタンと、画面いっぱいの画像） ===== */
+  .guide-btn {
+    display: block; width: 100%; margin-top: 8px; padding: 12px;
+    background: rgba(210, 177, 123, 0.12);
+    border: 1px solid rgba(210, 177, 123, 0.5); border-radius: 10px;
+    color: #e8cfa4; font-size: 14px; font-weight: 700; letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .guide-btn:active { transform: scale(0.98); background: rgba(210, 177, 123, 0.25); }
+  #guideView {
+    display: none; position: fixed; inset: 0; z-index: 5000;
+    background: #ffffff; flex-direction: column;
+  }
+  #guideView.show { display: flex; animation: fadeIn 0.2s; }
+  /* 画像は横幅いっぱい。画面に入りきらないときは上下にスクロール */
+  .guide-scroll {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding-top: env(safe-area-inset-top);
+    display: flex; align-items: center;
+  }
+  .guide-scroll img { display: block; width: 100%; height: auto; margin: auto 0; }
+  .guide-close {
+    flex-shrink: 0;
+    margin: 8px 12px calc(10px + env(safe-area-inset-bottom));
+    padding: 14px; border: none; border-radius: 12px;
+    background: #0f172a; color: #ffffff;
+    font-size: 16px; font-weight: 700; letter-spacing: 2px; cursor: pointer;
+  }
+  .guide-close:active { transform: scale(0.98); }
+
 </style>
 </head>
 <body>
@@ -762,6 +792,8 @@
     <button class="action-btn btn-reset-pcase" onclick="resetType('pcase')">Pケース<br>リセット</button>
     <button class="action-btn btn-reset" onclick="resetAll()">合計<br>リセット</button>
   </div>
+
+  <button class="guide-btn" onclick="openGuide()">📖 重量換算の手順を見る</button>
 </div>
 
 <div class="message" id="message"></div>
@@ -804,6 +836,12 @@
       <button class="intro-btn intro-close" onclick="closeIntro()">とじる</button>
     </div>
   </div>
+</div>
+
+<!-- 重量換算の手順の画像（画面いっぱい） -->
+<div id="guideView">
+  <div class="guide-scroll"><img src="tejun.webp" alt="重量換算手順（複数パレット）"></div>
+  <button class="guide-close" onclick="closeGuide()">画像を閉じる</button>
 </div>
 
 <!-- 確認ダイアログ -->
@@ -1245,6 +1283,17 @@
   }
 
   // 合計と台数・個数だけをリセット (1台/1個の重さと記憶した重さは残す)
+  // ===== 重量換算の手順の画像を開く・閉じる =====
+  function openGuide() {
+    document.getElementById('guideView').classList.add('show');
+    document.querySelector('#guideView .guide-scroll').scrollTop = 0;
+    playOpen();
+  }
+  function closeGuide() {
+    document.getElementById('guideView').classList.remove('show');
+    playCancel();
+  }
+
   // パレットだけ・Pケースだけのリセット（その数と、合計に足したその分を消す。重さはそのまま残る）
   function resetType(type) {
     const label = type === 'pallet' ? 'パレット' : 'Pケース';
