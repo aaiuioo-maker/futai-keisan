@@ -428,7 +428,7 @@
   .result-breakdown .bd-pcase { color: #0284c7; font-weight: 600; }
 
   /* アクション */
-  .actions { display: flex; gap: 8px; margin-top: 8px; }
+  .actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
   .action-btn {
     flex: 1; padding: 8px 4px; line-height: 1.35;
     background: rgba(30, 41, 59, 0.7);
@@ -637,6 +637,17 @@
   }
   .guide-close:active { transform: scale(0.98); }
 
+  /* ===== コロコロ（緑） ===== */
+  .card-koro { border-color: rgba(74, 222, 128, 0.3); }
+  .card-koro .card-icon { background: linear-gradient(135deg, #4ade80, #22c55e); }
+  .card-koro .add-btn { background: linear-gradient(135deg, #4ade80, #22c55e); box-shadow: 0 4px 14px rgba(74, 222, 128, 0.3); }
+  .card-koro .clear-btn { border: 1px solid rgba(74, 222, 128, 0.4); color: #4ade80; }
+  .card-koro .clear-btn:active { background: rgba(74, 222, 128, 0.15); }
+  .card-koro .added-info { color: #4ade80; }
+  .btn-koro, .btn-reset-koro { border-color: rgba(74, 222, 128, 0.45); color: #86efac; }
+  .btn-koro:active, .btn-reset-koro:active { background: rgba(74, 222, 128, 0.2); }
+  .result-breakdown .bd-koro { color: #16a34a; font-weight: 600; }
+
 </style>
 </head>
 <body>
@@ -761,7 +772,7 @@
           <line x1="3" y1="14" x2="21" y2="14"/>
         </svg>
       </div>
-      <div class="card-title">Pケース</div>
+      <div class="card-title">Pケース（段ボール）</div>
     </div>
 
     <div class="input-row">
@@ -798,6 +809,53 @@
     <div class="added-info" id="pcaseAddedInfo"></div>
   </div>
 
+  <!-- コロコロ（めったに使わない。「コロコロ追加」ボタンで出す） -->
+  <div class="card card-koro" id="koroCard" style="display:none">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="7" width="18" height="8" rx="1"/>
+          <circle cx="7" cy="18" r="2"/>
+          <circle cx="17" cy="18" r="2"/>
+        </svg>
+      </div>
+      <div class="card-title">コロコロ</div>
+    </div>
+
+    <div class="input-row">
+      <span class="input-label">1台の重さ</span>
+      <div class="input-field">
+        <input type="text" inputmode="decimal" autocomplete="off"
+               class="input-value" id="koroWeightInput" placeholder="0.0">
+        <span class="input-unit">kg</span>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <span class="input-label">台数</span>
+      <div class="input-field">
+        <input type="text" inputmode="numeric" autocomplete="off"
+               class="input-value" id="koroCountInput" placeholder="0">
+        <span class="input-unit">台</span>
+      </div>
+    </div>
+
+    <div class="subtotal">
+      小計: <span class="subtotal-value" id="koroSubtotal">0.0 kg</span>
+    </div>
+
+    <div class="btn-row">
+      <button class="clear-btn" id="koroClearBtn" onclick="clearAdded('koro')" disabled>
+        取消
+      </button>
+      <button class="add-btn" id="koroAddBtn" onclick="addToTotal('koro')">
+        <span style="font-size:18px;">＋</span> 合計に追加
+      </button>
+    </div>
+
+    <div class="added-info" id="koroAddedInfo"></div>
+  </div>
+
   <!-- 合計 -->
   <div class="result-card" id="resultCard">
     <div class="result-label">風袋 合計重量</div>
@@ -809,9 +867,11 @@
 
   <div class="actions">
     <button class="action-btn btn-save" onclick="saveWeights()">重さを<br>記憶</button>
+    <button class="action-btn btn-koro" id="koroToggleBtn" onclick="toggleKoro()">コロコロ<br>追加</button>
+    <button class="action-btn btn-reset" onclick="resetAll()">合計<br>リセット</button>
     <button class="action-btn btn-reset-pallet" onclick="resetType('pallet')">パレット<br>リセット</button>
     <button class="action-btn btn-reset-pcase" onclick="resetType('pcase')">Pケース<br>リセット</button>
-    <button class="action-btn btn-reset" onclick="resetAll()">合計<br>リセット</button>
+    <button class="action-btn btn-reset-koro" onclick="resetType('koro')">コロコロ<br>リセット</button>
   </div>
 
   <button class="guide-btn" onclick="openGuide()">📖 重量換算の手順を見る</button>
@@ -920,8 +980,13 @@
     // entries: 合計に追加した内訳 [{ weight, count }]
     pallet: { weight: 0, count: 0, added: 0, entries: [] },
     pcase: { weight: 0, count: 0, added: 0, entries: [] },
+    koro: { weight: 0, count: 0, added: 0, entries: [] },
     total: 0
   };
+
+  // 名前と、数の呼び方
+  const LABEL = { pallet: 'パレット', pcase: 'Pケース', koro: 'コロコロ' };
+  const UNIT = { pallet: '台数', pcase: '個数', koro: '台数' };
 
   const STORAGE_KEY = 'futai_keisan_v4';
 
@@ -1099,7 +1164,9 @@
       { id: 'palletWeightInput', type: 'pallet', field: 'weight', decimal: true },
       { id: 'palletCountInput', type: 'pallet', field: 'count', decimal: false },
       { id: 'pcaseWeightInput', type: 'pcase', field: 'weight', decimal: true },
-      { id: 'pcaseCountInput', type: 'pcase', field: 'count', decimal: false }
+      { id: 'pcaseCountInput', type: 'pcase', field: 'count', decimal: false },
+      { id: 'koroWeightInput', type: 'koro', field: 'weight', decimal: true },
+      { id: 'koroCountInput', type: 'koro', field: 'count', decimal: false }
     ];
 
     configs.forEach(cfg => {
@@ -1187,23 +1254,22 @@
 
     playReset();
 
-    const label = type === 'pallet' ? 'パレット' : 'Pケース';
+    const label = LABEL[type];
     showMessage(`${label} ${fmt(removed)} kg を取消`);
     updateDisplay();
   }
 
   // ===== 表示更新 =====
   function updateDisplay() {
-    const palletSubtotal = state.pallet.weight * state.pallet.count;
-    const pcaseSubtotal = state.pcase.weight * state.pcase.count;
-    document.getElementById('palletSubtotal').textContent = fmt(palletSubtotal) + ' kg';
-    document.getElementById('pcaseSubtotal').textContent = fmt(pcaseSubtotal) + ' kg';
+    ['pallet', 'pcase', 'koro'].forEach(t => {
+      document.getElementById(t + 'Subtotal').textContent = fmt(state[t].weight * state[t].count) + ' kg';
+    });
 
     document.getElementById('totalValue').textContent = fmt(state.total);
 
     // 内訳: 例) パレット 25.0kg×4台 ＋ Pケース 1.8kg×10個
     const parts = [];
-    [['pallet', 'パレット', '台'], ['pcase', 'Pケース', '個']].forEach(([type, label, unit]) => {
+    [['pallet', 'パレット', '台'], ['pcase', 'Pケース', '個'], ['koro', 'コロコロ', '台']].forEach(([type, label, unit]) => {
       // 同じ重さで何回か追加したときは数をまとめる (1.8kg×10個 + 1.8kg×5個 → 1.8kg×15個)
       const byWeight = new Map();
       state[type].entries.forEach(en => {
@@ -1217,8 +1283,9 @@
 
     document.getElementById('palletAddBtn').disabled = !(state.pallet.weight > 0 && state.pallet.count > 0);
     document.getElementById('pcaseAddBtn').disabled = !(state.pcase.weight > 0 && state.pcase.count > 0);
+    document.getElementById('koroAddBtn').disabled = !(state.koro.weight > 0 && state.koro.count > 0);
 
-    ['pallet', 'pcase'].forEach(type => {
+    ['pallet', 'pcase', 'koro'].forEach(type => {
       const info = document.getElementById(type + 'AddedInfo');
       const clearBtn = document.getElementById(type + 'ClearBtn');
       const added = state[type].added;
@@ -1239,7 +1306,8 @@
     try {
       const data = {
         palletWeight: state.pallet.weight,
-        pcaseWeight: state.pcase.weight
+        pcaseWeight: state.pcase.weight,
+        koroWeight: state.koro.weight
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       playSave();
@@ -1257,6 +1325,7 @@
         const data = JSON.parse(saved);
         if (typeof data.palletWeight === 'number') state.pallet.weight = data.palletWeight;
         if (typeof data.pcaseWeight === 'number') state.pcase.weight = data.pcaseWeight;
+        if (typeof data.koroWeight === 'number') state.koro.weight = data.koroWeight;
         syncInputsFromState();
         updateDisplay();
       }
@@ -1269,7 +1338,9 @@
       ['palletWeightInput', state.pallet.weight],
       ['palletCountInput', state.pallet.count],
       ['pcaseWeightInput', state.pcase.weight],
-      ['pcaseCountInput', state.pcase.count]
+      ['pcaseCountInput', state.pcase.count],
+      ['koroWeightInput', state.koro.weight],
+      ['koroCountInput', state.koro.count]
     ];
     map.forEach(([id, val]) => {
       const el = document.getElementById(id);
@@ -1315,10 +1386,20 @@
     playCancel();
   }
 
+  // ===== コロコロのカードを出す・しまう（めったに使わないので、ふだんは隠しておく） =====
+  function toggleKoro(show) {
+    const card = document.getElementById('koroCard');
+    const open = (typeof show === 'boolean') ? show : card.style.display === 'none';
+    card.style.display = open ? '' : 'none';
+    document.getElementById('koroToggleBtn').innerHTML = open ? 'コロコロ<br>しまう' : 'コロコロ<br>追加';
+    if (open) { playOpen(); card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    else playCancel();
+  }
+
   // パレットだけ・Pケースだけのリセット（その数と、合計に足したその分を消す。重さはそのまま残る）
   function resetType(type) {
-    const label = type === 'pallet' ? 'パレット' : 'Pケース';
-    const unit = type === 'pallet' ? '台数' : '個数';
+    const label = LABEL[type];
+    const unit = UNIT[type];
     showConfirm(
       label + 'をリセットしますか？<br>(' + unit + 'と、合計に足した' + label + 'の分が消えます。重さはそのまま残ります)',
       () => {
@@ -1348,6 +1429,9 @@
         state.pcase.count = 0;
         state.pcase.added = 0;
         state.pcase.entries = [];
+        state.koro.count = 0;
+        state.koro.added = 0;
+        state.koro.entries = [];
 
         playReset();
         syncInputsFromState();
