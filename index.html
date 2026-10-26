@@ -637,6 +637,29 @@
   }
   .guide-close:active { transform: scale(0.98); }
 
+  /* ===== 重量換算の手順を声で説明（めたん→つむぎ→はう→小夜 の順番） ===== */
+  .tut-btn { background: rgba(217, 119, 87, 0.18); border-color: #d97757; color: #ffd2bf; }
+  .guide-pic { position: relative; width: 100%; margin: auto 0; }
+  .guide-pic img { margin: 0; }
+  #tutBox { display: none; position: absolute; border: 4px solid #e8442a; border-radius: 12px; box-shadow: 0 0 0 4px rgba(255,255,255,.8), 0 0 22px rgba(232,68,42,.7); pointer-events: none; transition: all .35s; }
+  body.tut #tutBox.on { display: block; animation: tutBlink 1.2s infinite; }
+  @keyframes tutBlink { 50% { border-color: #ffb020; } }
+  body.tut #guideView .guide-close { display: none; }
+  body.tut #guideView .guide-scroll { padding-bottom: 190px; }
+  body.tut #main { padding-bottom: 190px; }
+  .hl { outline: 3px solid #e8a33a !important; outline-offset: 3px; box-shadow: 0 0 22px rgba(232,163,58,.8) !important; }
+  #tut { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6000; display: none; justify-content: center; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); pointer-events: none; }
+  body.tut #tut { display: flex; }
+  #tut .box { pointer-events: auto; width: 100%; max-width: 520px; background: #0b1120; color: #f8f8f8; border: 3px double #f8f8f8; border-radius: 8px; padding: 8px 10px; box-shadow: 0 -4px 20px rgba(0,0,0,.6); }
+  #tut .row1 { display: flex; gap: 10px; align-items: center; }
+  #tut .who { flex: 0 0 auto; text-align: center; font-size: 11px; font-weight: 700; color: #ffe8b0; }
+  #tutFace { display: block; width: 42px; height: 48px; margin: 0 auto 2px; image-rendering: pixelated; }
+  #tutCap { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.55; min-height: 4.6em; }
+  #tut .row2 { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+  #tut .row2 button { flex: 1; font: inherit; font-size: 13px; font-weight: 700; color: #f1f5f9; background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 7px 2px; cursor: pointer; }
+  #tut .row2 #tutNo { flex: 0 0 auto; font-size: 11px; color: #94a3b8; padding: 0 2px; }
+  #tut .credit { font-size: 10px; color: #94a3b8; margin-top: 4px; text-align: right; }
+
   /* ===== コロコロ（緑） ===== */
   .card-koro { border-color: rgba(74, 222, 128, 0.3); }
   .card-koro .card-icon { background: linear-gradient(135deg, #4ade80, #22c55e); }
@@ -875,6 +898,7 @@
   </div>
 
   <button class="guide-btn" onclick="openGuide()">📖 重量換算の手順を見る</button>
+  <button class="guide-btn tut-btn" id="tutBtn">🔊 重量換算の手順を声で聞く</button>
 </div>
 
 <div class="message" id="message"></div>
@@ -921,7 +945,7 @@
 
 <!-- 重量換算の手順の画像（画面いっぱい） -->
 <div id="guideView">
-  <div class="guide-scroll"><img src="tejun.webp" alt="重量換算手順（複数パレット）"></div>
+  <div class="guide-scroll"><div class="guide-pic"><img src="tejun.webp" alt="重量換算手順（複数パレット）"><div id="tutBox"></div></div></div>
   <button class="guide-close" onclick="closeGuide()">画像を閉じる</button>
 </div>
 
@@ -2912,6 +2936,218 @@ window.CC_EXTRA = [...BLOCKS, ...MOBS, ...MC2, ...MC3, ...MC4, ...MC5];
 })();
 </script>
 <!-- 更新した日時（GitHub に反映した日時が自動で出る）。オープニングの「タップして…」の下にだけ小さく出す。オープニングがなければ出さない -->
+<!-- 重量換算の手順を声で説明（めたん→つむぎ→はう→小夜 の順番に1つずつ読む） -->
+<div id="tut"><div class="box">
+  <div class="row1"><div class="who"><canvas id="tutFace" width="56" height="64" aria-hidden="true"></canvas><span id="tutName"></span></div><div id="tutCap"></div></div>
+  <div class="row2"><button id="tutPrev">◀ 前</button><button id="tutPlay">⏸ 止める</button><button id="tutNext">次 ▶</button><button id="tutEnd">✕ おわる</button><span id="tutNo"></span></div>
+  <div class="credit">声：VOICEVOX:四国めたん・春日部つむぎ・雨晴はう・小夜/SAYO</div>
+</div></div>
+<script>
+(function tutorial() {
+  // 1文字＝1ドット（横14×縦16）。S＝はだ、E＝目（ほかのアプリと同じ4人）
+  const SPK = [
+    { name: 'めたん', pal: { H: '#e04b8f', D: '#c43a7a', d: '#f07ab0', S: '#ffe2cc', E: '#d9a020', K: '#2b2733', W: '#f4f0f0' }, map: [
+      '....HHHHHH....', '..HHHHHHHHHH..', '.HHHHHHHHHHHH.', '.HHHHHHHHHHHH.',
+      'DHHSSHSSHSSHHD', 'dHSSSSSSSSSSHd', 'DHSEESSSSEESHD', 'dHSEESSSSEESHd',
+      'DDSSSSSSSSSSDD', 'dd.SSSSSSSS.dd', 'DD..SSSSSS..DD', '.dd.KWWWWK.dd.',
+      '.DD.KKWWKK.DD.', '..d.KKKKKK.d..', '...KKKKKKKK...', '...KKKKKKKK...'] },
+    { name: 'つむぎ', pal: { H: '#f2c740', h: '#ffe08a', S: '#ffe2cc', E: '#7a4a2a', W: '#f4f4f4', R: '#e04848' }, map: [
+      '.....HHHH.....', '..HHHHhHHHHH..', '.HHHHHHHHHHHH.', 'HHHHHHHHHHHHHH',
+      'HHHSSHHSSHSHHH', 'HHSSSSSSSSSSHH', 'HHSEESSSSEESHH', 'HHSEESSSSEESHH',
+      'HHSSSSSSSSSSHH', 'HH.SSSSSSSS.HH', 'HH..SSSSSS..HH', 'HHH.WWRRWW.HHH',
+      'HHH.WWRRWW.HHH', '.HH.WWWWWW.HH.', '...WWWWWWWW...', '...WWWWWWWW...'] },
+    { name: 'はう', pal: { H: '#9ccbe8', C: '#ffffff', X: '#e04848', S: '#ffe2cc', E: '#4a7ab0', W: '#ffffff', P: '#f6b8c8' }, map: [
+      '...CCCCCCCC...', '..CCCCXCCCCC..', '.HHHHHHHHHHHH.', '.HHHHHHHHHHHH.',
+      'HHHSSHSSHSSHHH', 'HHSSSSSSSSSSHH', 'HHSEESSSSEESHH', 'HHSEESSSSEESHH',
+      '.HSSSSSSSSSSH.', '.H.SSSSSSSS.H.', '....SSSSSS....', '...PWWWWWWP...',
+      '..PPWWWWWWPP..', '..PPWWWWWWPP..', '..PPPWWWWPPP..', '..PPPWWWWPPP..'] },
+    { name: '小夜', pal: { H: '#8a5a3a', I: '#f2a0b0', S: '#ffe2cc', E: '#3a8a5a', G: '#e8d070', K: '#b04040' }, map: [
+      '.HH........HH.', '.HIH......HIH.', '.HHHHHHHHHHHH.', 'HHHHHHHHHHHHHH',
+      'HHHSSHSSHSSHHH', 'HHSSSSSSSSSSHH', 'HHSEESSSSEESHH', 'HHSEESSSSEESHH',
+      'HHSSSSSSSSSSHH', 'HH.SSSSSSSS.HH', '.H..SSSSSS..H.', '...GGGGGGGG...',
+      '..KKKKKKKKKK..', '..KKKKKKKKKK..', '..KKKKKKKKKK..', '..KKKKKKKKKK..'] },
+  ];
+  // 手順の絵（tejun.webp 1493×2000）の中で光らせる所 [左, 上, 幅, 高さ]
+  const BOX = {
+    title: [380, 60, 760, 250], sample: [55, 340, 790, 100], scale: [265, 425, 780, 95], plus: [120, 510, 630, 160],
+    futai: [180, 515, 1290, 320], kg204: [55, 880, 1185, 185], tsusu: [185, 1105, 665, 100], print: [415, 1235, 230, 100],
+    over: [55, 1360, 1395, 270], r400: [215, 1650, 830, 145], r310: [215, 1805, 1030, 150], point: [1235, 1680, 250, 310],
+  };
+  // 風袋計算の例（絵と同じ：パレット 92.5kg×2台、Pケース 1.9kg×10個）
+  function setCalc(pallet, pcase) {
+    const z = { weight: 0, count: 0, added: 0, entries: [] };
+    state.pallet = pallet ? { weight: 92.5, count: 0, added: 185, entries: [{ weight: 92.5, count: 2 }] } : Object.assign({}, z, { entries: [] });
+    state.pcase = pcase ? { weight: 1.9, count: 0, added: 19, entries: [{ weight: 1.9, count: 10 }] } : Object.assign({}, z, { entries: [] });
+    state.koro = Object.assign({}, z, { entries: [] });
+    state.total = round2(state.pallet.added + state.pcase.added);
+    syncInputsFromState(); updateDisplay();
+  }
+  const IMG = box => () => { showView('img'); markBox(box); };
+  const APP = (q, p, c) => () => { showView('app'); setCalc(p, c); markEl(q); };
+  // [字幕, その場面の画面にする, その場面でする操作]。声は koe-tut/番号.wav（i 番目は SPK[i % 4] が読む）
+  // 字幕（と YOMI の読み）を変えたら声も作り直すこと（KOE_V を1つ上げる）
+  const KOE_V = 1;
+  const STEPS = [
+    ['こんにちは。重量換算の手順を、4人で順番に説明します。郵便物を何回かに分けてのせる「複数パレット」のやり方です。', IMG('title')],
+    ['まず、サンプル10通を計量器にのせて、「確定」を押します。', IMG('sample')],
+    ['次に「スケール切換」を押して、「0リセット」を押します。', IMG('scale')],
+    ['郵便物をのせます。1回目をのせたら「＋」、2回目をのせたら「＋」。のせるたびに「＋」を押します。', IMG('plus')],
+    ['ここで大事なのが「風袋の重さ合計」です。パレットやPケースの重さを、この風袋計算アプリで出します。', IMG('futai')],
+    ['パレットの「1台の重さ」と「台数」を入れて「合計に追加」を押します。92.5kg が 2台で 185kg です。', APP('.card-pallet', false, false), () => typeAdd('pallet', '92.5', '2')],
+    ['次に、Pケースの「1個の重さ」と「個数」を入れて「合計に追加」。1.9kg が 10個で 19kg です。', APP('.card-pcase', true, false), () => typeAdd('pcase', '1.9', '10')],
+    ['風袋の合計は 185kg ＋ 19kg で、204kg になりました。', APP('#resultCard', true, true)],
+    ['計量器にもどって、風袋の合計「204」を打ち、「風袋」「確定」「−（マイナス）」「確定」の順に押します。', IMG('kg204')],
+    ['次に、申出通数を入れて「確定」を押します。', IMG('tsusu')],
+    ['最後に「印刷」を押せば、できあがりです。', IMG('print')],
+    ['風袋の合計が 500kg 以上のときは、500kg より少なく分けて入力します。', IMG('over')],
+    ['たとえば 710kg なら、まず「400」を打って「風袋」「確定」「−」を押します。', IMG('r400')],
+    ['続けて「310」を打って「風袋」「確定」「−」。最後に「確定」を押します。', IMG('r310')],
+    ['ポイントは、分けて入れるたびに「−（マイナス）」を押すことです。', IMG('point')],
+    ['手順の絵は、いつでも上のボタンで見られます。説明は以上です。おつかれさまでした。', APP('.guide-btn', true, true)],
+  ];
+  // 声の読み（VOICEVOX で koe-tut を作るとき・録音が読めないときに端末の声で読むときに使う）
+  const YOMI = [
+    "こんにちは。重量換算の手順を、4人で順番に説明します。郵便物を何回かに分けてのせる、複数パレットのやり方です。",
+    "まず、サンプル10通を、計量器にのせて、確定を押します。",
+    "次に、スケールきりかえを押して、ゼロリセットを押します。",
+    "郵便物をのせます。1回目をのせたらプラス、2回目をのせたらプラス。のせるたびに、プラスを押します。",
+    "ここで大事なのが、ふうたいの重さ合計です。パレットやピーケースの重さを、この、ふうたい計算アプリで出します。",
+    "パレットの、1台の重さと、台数を入れて、合計に追加を押します。92.5キロが2台で、185キロです。",
+    "次に、ピーケースの、1個の重さと、個数を入れて、合計に追加。1.9キロが10個で、19キロです。",
+    "ふうたいの合計は、185キロたす19キロで、204キロになりました。",
+    "計量器にもどって、ふうたいの合計、にひゃくよん、を打ち、ふうたい、確定、マイナス、確定の順に押します。",
+    "次に、もうしでつうすうを入れて、確定を押します。",
+    "最後に、印刷を押せば、できあがりです。",
+    "ふうたいの合計が、500キロ以上のときは、500キロより少なく分けて入力します。",
+    "たとえば、710キロなら、まず、よんひゃくを打って、ふうたい、確定、マイナスを押します。",
+    "続けて、さんびゃくじゅう、を打って、ふうたい、確定、マイナス。最後に確定を押します。",
+    "ポイントは、分けて入れるたびに、マイナスを押すことです。",
+    "手順の絵は、いつでも上のボタンで見られます。説明は以上です。おつかれさまでした。"
+  ];
+  const $t = id => document.getElementById(id);
+  let tutOn = false, tutI = 0, tutPlaying = false, tutToken = null, tutSrc = null, talking = false, saved = null, ac = null, timers = [];
+  const koe = [];   // 声（デコード済み）。読めなかったときは端末の声で読む
+  function loadKoe() {
+    if (koe.length) return;
+    STEPS.forEach((st, i) => koe[i] = fetch('koe-tut/' + String(i).padStart(2, '0') + '.wav?v=' + KOE_V)
+      .then(r => r.ok ? r.arrayBuffer() : null).catch(() => null)
+      .then(ab => ab && new Promise(res => { try { ac.decodeAudioData(ab, b => res(b), () => res(null)); } catch (e) { res(null); } })));
+  }
+  function later(fn, ms) { timers.push(setTimeout(() => { if (tutOn) fn(); }, ms)); }
+  function showView(v) {
+    $t('guideView').classList.toggle('show', v === 'img');
+    if (v !== 'img') $t('tutBox').classList.remove('on');
+  }
+  // 絵の中の枠を光らせて、そこまでスクロール
+  function markBox(name) {
+    unmark();
+    const img = document.querySelector('#guideView img'), b = $t('tutBox'), [x, y, w, h] = BOX[name];
+    const put = () => {
+      const k = img.clientWidth / 1493;
+      Object.assign(b.style, { left: x * k - 4 + 'px', top: y * k - 4 + 'px', width: w * k + 8 + 'px', height: h * k + 8 + 'px' });
+      b.classList.add('on');
+      const sc = document.querySelector('#guideView .guide-scroll');
+      sc.scrollTo({ top: Math.max(0, img.parentNode.offsetTop + y * k - (sc.clientHeight - 190) / 2 + h * k / 2), behavior: 'smooth' });
+    };
+    if (img.complete && img.clientWidth) put(); else img.addEventListener('load', put, { once: true });
+  }
+  function markEl(q) {
+    unmark();
+    const el = document.querySelector(q);
+    if (el) { el.classList.add('hl'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  }
+  function unmark() { document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl')); }
+  // 重さと数を1けたずつ打ちこんで「合計に追加」を押す
+  function typeIn(id, digits, at) {
+    const el = $t(id);
+    [...digits].forEach((ch, k) => later(() => { el.value = digits.slice(0, k + 1); el.dispatchEvent(new Event('input')); }, at + k * 220));
+    return at + digits.length * 220;
+  }
+  function typeAdd(type, w, n) {
+    const t = typeIn(type + 'CountInput', n, typeIn(type + 'WeightInput', w, 800) + 300);
+    later(() => addToTotal(type), t + 500);
+  }
+  function stopVoice() {
+    tutToken = null; talking = false;
+    if (tutSrc) { try { tutSrc.onended = null; tutSrc.stop(); } catch (e) {} tutSrc = null; }
+    try { speechSynthesis.cancel(); } catch (e) {}
+  }
+  function showStep(i) {
+    tutI = i;
+    timers.forEach(clearTimeout); timers = [];
+    const st = STEPS[i];
+    $t('tutCap').textContent = st[0];
+    $t('tutName').textContent = SPK[i % 4].name;
+    $t('tutNo').textContent = (i + 1) + '/' + STEPS.length;
+    st[1]();
+    if (st[2]) st[2]();
+  }
+  function playStep(i) {
+    stopVoice(); showStep(i);
+    if (!tutPlaying) return;
+    const token = tutToken = {};
+    const next = () => { if (tutToken !== token) return; talking = false;
+      setTimeout(() => { if (tutToken !== token) return; if (tutI < STEPS.length - 1) playStep(tutI + 1); else { tutPlaying = false; showPlay(); } }, 800); };
+    talking = true;
+    koe[i].then(b => {
+      if (tutToken !== token) return;
+      if (b) {
+        try { if (ac.state !== 'running') ac.resume(); } catch (e) {}
+        const s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination);
+        s.onended = next; tutSrc = s; s.start();
+      } else {
+        // 録音が読めないときは端末の声で読む
+        try { const u = new SpeechSynthesisUtterance(YOMI[i]); u.lang = 'ja-JP'; u.onend = next; speechSynthesis.speak(u); }
+        catch (e) { setTimeout(next, 3000); }
+      }
+    });
+  }
+  function showPlay() { $t('tutPlay').textContent = tutPlaying ? '⏸ 止める' : '▶ 聞く'; }
+  function startTut() {
+    ac = getAudioCtx();
+    try { ac.resume(); } catch (e) {}
+    loadKoe();
+    if (!tutOn) saved = JSON.parse(JSON.stringify(state));
+    tutOn = true; tutPlaying = true; document.body.classList.add('tut'); showPlay();
+    playStep(0);
+  }
+  function endTut() {
+    stopVoice(); tutOn = false; tutPlaying = false;
+    timers.forEach(clearTimeout); timers = [];
+    document.body.classList.remove('tut');
+    unmark(); $t('tutBox').classList.remove('on'); showView('app');
+    // 説明の前に入れていた重さ・数・合計にもどす
+    if (saved) { Object.assign(state, saved); syncInputsFromState(); updateDisplay(); }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  $t('tutBtn').onclick = startTut;
+  $t('tutEnd').onclick = endTut;
+  $t('tutPlay').onclick = () => { tutPlaying = !tutPlaying; showPlay(); if (tutPlaying) playStep(tutI); else stopVoice(); };
+  $t('tutPrev').onclick = () => { if (tutI > 0) { tutPlaying ? playStep(tutI - 1) : showStep(tutI - 1); } };
+  $t('tutNext').onclick = () => { if (tutI < STEPS.length - 1) { tutPlaying ? playStep(tutI + 1) : showStep(tutI + 1); } };
+  // 読んでいる人の顔（しゃべっている間は口がパクパク・体がはずむ）
+  (function face() {
+    const c = $t('tutFace'), g = c.getContext('2d'), q = 4;
+    const P = (x, y, col) => { g.fillStyle = col; g.fillRect(x * q, y * q, q, q); };
+    function draw(now) {
+      requestAnimationFrame(draw);
+      if (!tutOn) return;
+      const t = now / 1000, sp = SPK[tutI % 4];
+      const bob = talking && Math.floor(t * 4) % 2 ? -1 : 0, blink = (t % 3.2) > 3.05;
+      g.clearRect(0, 0, c.width, c.height);
+      sp.map.forEach((row, y) => [...row].forEach((ch, x) => {
+        if (ch === '.') return;
+        if (ch === 'E' && blink) { if (y === 7) P(x, y + bob, '#5a3a3a'); return; }
+        P(x, y + bob, sp.pal[ch]);
+      }));
+      const open = talking && Math.floor(t * 9) % 3 !== 0;
+      if (open) { P(6, 9 + bob, '#8a2a3a'); P(7, 9 + bob, '#8a2a3a'); P(6, 10 + bob, '#e07080'); P(7, 10 + bob, '#8a2a3a'); }
+      else { P(6, 9 + bob, '#c0505a'); P(7, 9 + bob, '#c0505a'); }
+    }
+    requestAnimationFrame(draw);
+  })();
+})();
+</script>
 <script>(function(){var d=new Date(document.lastModified);if(isNaN(d)||Math.abs(Date.now()-d)<5000)return;function p(n){return('0'+n).slice(-2);}
 var e=document.createElement('div');e.id='appVer';e.textContent='更新 '+d.getFullYear()+'/'+p(d.getMonth()+1)+'/'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
 e.style.cssText='display:block;width:100%;text-align:center;font:11px/1.4 sans-serif;color:inherit;opacity:.6;margin-top:8px;pointer-events:none;';
